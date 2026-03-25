@@ -1,11 +1,7 @@
-import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient;
-  pool: Pool;
-};
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -14,13 +10,12 @@ function createPrismaClient() {
   // Strip Prisma-specific params that pg driver doesn't understand
   const pgUrl = connectionString.replace("?pgbouncer=true", "");
 
-  const pool =
-    globalForPrisma.pool ??
-    new Pool({ connectionString: pgUrl, max: 5, ssl: { rejectUnauthorized: false } });
+  const adapter = new PrismaPg({
+    connectionString: pgUrl,
+    max: 5,
+    ssl: { rejectUnauthorized: false },
+  });
 
-  if (!globalForPrisma.pool) globalForPrisma.pool = pool;
-
-  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
