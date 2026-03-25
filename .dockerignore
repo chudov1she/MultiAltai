@@ -1,0 +1,36 @@
+# Dependencies — re-installed inside Docker
+node_modules
+
+# Next.js build output — built inside Docker
+.next
+
+# Local environment — values are injected at deploy time by Timeweb
+.env
+.env.local
+.env.*.local
+
+# Database files — provided at runtime via volume / persistent disk
+*.db
+*.db-shm
+*.db-wal
+prisma/dev.db
+prisma/*.db
+
+# Dev / IDE
+.git
+.gitignore
+.cursor
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests / docs
+__tests__
+*.test.ts
+*.spec.ts
+README.md

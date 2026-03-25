@@ -1,0 +1,232 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MANAGER
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String?
+  phone        String?       @unique
+  email        String        @unique
+  password     String
+  avatar       String?
+  role         UserRole      @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     Session[]
+  landPlots    LandPlot[]
+  applications Application[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String
+  deviceInfo   String?
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+  @@map("sessions")
+}
+
+enum ApplicationType {
+  CONTACT
+  LAND_PLOT
+}
+
+model CompanyContact {
+  id           String   @id @default(uuid())
+  phone        String?
+  whatsapp     String?
+  telegram     String?
+  address      String?
+  latitude     Float?
+  longitude    Float?
+  workTimeFrom String?
+  workTimeTo   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("company_contacts")
+}
+
+enum PlotType {
+  RUSSIA
+  NOVOROSSIA
+}
+
+enum LandPlotStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum MediaFileType {
+  IMAGE
+  VIDEO
+}
+
+model Location {
+  id        String     @id @default(uuid())
+  address   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  landPlots LandPlot[]
+
+  @@map("locations")
+}
+
+model LandCategory {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  landPlots   LandPlot[]
+
+  @@map("land_categories")
+}
+
+model PermittedUse {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  landPlots   LandPlot[]
+
+  @@map("permitted_uses")
+}
+
+model Communication {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  icon      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  landPlots LandPlot[]
+
+  @@map("communications")
+}
+
+model Feature {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  icon      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  landPlots LandPlot[]
+
+  @@map("features")
+}
+
+model LandPlot {
+  id               String         @id @default(uuid())
+  title            String
+  slug             String         @unique
+  plotType         PlotType
+  description      String
+  isPublished      Boolean        @default(false)
+  status           LandPlotStatus @default(AVAILABLE)
+  locationId       String
+  // SQLite не поддерживает массивы; кадастровые номера хранятся как JSON-массив строк
+  cadastralNumbers Json           @default("[]")
+  categoryId       String
+  permittedUseId   String
+  area             Float
+  price            Float
+  pricePerHundred  Float
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  createdById      String
+  location         Location       @relation(fields: [locationId], references: [id])
+  category         LandCategory   @relation(fields: [categoryId], references: [id])
+  permittedUse     PermittedUse   @relation(fields: [permittedUseId], references: [id])
+  creator          User           @relation(fields: [createdById], references: [id])
+  communications   Communication[]
+  features         Feature[]
+  mediaFiles       MediaFile[]
+  documentFiles    DocumentFile[]
+  applications     Application[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([isPublished])
+  @@index([plotType])
+  @@index([price])
+  @@index([area])
+  @@map("land_plots")
+}
+
+model MediaFile {
+  id         String        @id @default(uuid())
+  url        String
+  type       MediaFileType
+  mimeType   String
+  size       Int
+  order      Int           @default(0)
+  landPlotId String
+  landPlot   LandPlot      @relation(fields: [landPlotId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([landPlotId])
+  @@map("media_files")
+}
+
+model DocumentFile {
+  id         String   @id @default(uuid())
+  url        String
+  name       String
+  mimeType   String
+  size       Int
+  landPlotId String
+  landPlot   LandPlot @relation(fields: [landPlotId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([landPlotId])
+  @@map("document_files")
+}
+
+model Application {
+  id           String          @id @default(uuid())
+  type         ApplicationType
+  name         String
+  phone        String
+  email        String
+  message      String
+  landPlotId   String?
+  landPlot     LandPlot?       @relation(fields: [landPlotId], references: [id], onDelete: SetNull)
+  isRead       Boolean         @default(false)
+  acceptedById String?
+  acceptedBy   User?           @relation(fields: [acceptedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([type])
+  @@index([isRead])
+  @@index([landPlotId])
+  @@index([createdAt])
+  @@map("applications")
+}
