@@ -6,23 +6,28 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 1 · deps — install ALL dependencies (dev + prod)
-# postinstall (prisma generate) is skipped here; runs explicitly in builder.
+# Stage 1 · deps — install ALL dependencies including native addons
+# prisma/ is copied so that postinstall (prisma generate) succeeds.
 # ─────────────────────────────────────────────────────────────────────────────
 FROM base AS deps
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --ignore-scripts
+COPY prisma ./prisma
+# Full install: compiles better-sqlite3 native addon + runs prisma generate
+RUN yarn install --frozen-lockfile
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 2 · builder — generate Prisma client + build Next.js
+# Stage 2 · builder — build Next.js
 # ─────────────────────────────────────────────────────────────────────────────
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# dev.db is included in the project root (COPY . .) and needed for
+# Next.js static pre-rendering of pages that query the database.
+ENV DATABASE_URL="file:./dev.db"
 
-# Generate Prisma client into ./generated/prisma
+# Re-generate Prisma client after full project copy (idempotent, ensures fresh output)
 RUN npx prisma generate
 
 # Build Next.js (produces .next/standalone because output: 'standalone')

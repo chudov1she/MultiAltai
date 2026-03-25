@@ -134,7 +134,7 @@ export default async function HelicopterPage({ params }: Props) {
                 <div className="text-3xl font-bold text-[#011315] mb-5">
                   {formatPrice(helicopter.price)}
                 </div>
-                <ApplicationForm listingId={helicopter.id} listingTitle={helicopter.title} listingType="general" />
+                <ApplicationForm listingId={String(helicopter.id)} listingTitle={helicopter.title} listingType="general" />
               </div>
             </div>
           </div>

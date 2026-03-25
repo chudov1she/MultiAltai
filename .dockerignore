@@ -9,12 +9,12 @@ node_modules
 .env.local
 .env.*.local
 
-# Database files — provided at runtime via volume / persistent disk
-*.db
+# SQLite WAL/SHM temp files (never needed in image)
 *.db-shm
 *.db-wal
-prisma/dev.db
+# Empty placeholder only
 prisma/*.db
+# dev.db IS included — needed during build (pre-rendering) and baked into image
 
 # Dev / IDE
 .git
