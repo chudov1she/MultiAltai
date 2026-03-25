@@ -2,8 +2,18 @@ import { prisma } from "./prisma";
 import type { Contact } from "@/types/site";
 import { COMPANY_CONTACT } from "./contacts";
 import type { LandPlot as FrontendLandPlot, LandPlotDetail } from "@/types/catalog";
+import { STATIC_LAND_PLOTS } from "./data/land-plots";
 
 export async function getRecommendedListings(): Promise<FrontendLandPlot[]> {
+  try {
+    return await getRecommendedListingsFromDb();
+  } catch (err) {
+    console.warn("[getRecommendedListings] DB unavailable, using static data:", err);
+    return STATIC_LAND_PLOTS.filter((p) => p.listing_status === "published").slice(0, 6);
+  }
+}
+
+async function getRecommendedListingsFromDb(): Promise<FrontendLandPlot[]> {
   const plots = await prisma.landPlot.findMany({
     where: { isPublished: true },
     take: 6,
@@ -71,6 +81,20 @@ export async function getRecommendedListings(): Promise<FrontendLandPlot[]> {
 }
 
 export async function getCatalogListings(
+  page = 1,
+  pageSize = 20,
+): Promise<{ plots: FrontendLandPlot[]; total: number }> {
+  try {
+    return await getCatalogListingsFromDb(page, pageSize);
+  } catch (err) {
+    console.warn("[getCatalogListings] DB unavailable, using static data:", err);
+    const published = STATIC_LAND_PLOTS.filter((p) => p.listing_status === "published");
+    const start = (page - 1) * pageSize;
+    return { plots: published.slice(start, start + pageSize), total: published.length };
+  }
+}
+
+async function getCatalogListingsFromDb(
   page = 1,
   pageSize = 20,
 ): Promise<{ plots: FrontendLandPlot[]; total: number }> {
@@ -156,11 +180,11 @@ export async function getLandPlotBySlug(slug: string): Promise<LandPlotDetail | 
       },
     });
   } catch (err) {
-    console.error(`[getLandPlotBySlug] Prisma error for slug "${slug}":`, err);
-    return null;
+    console.warn(`[getLandPlotBySlug] DB unavailable for slug "${slug}", using static data:`, err);
+    return (STATIC_LAND_PLOTS.find((p) => p.slug === slug) as LandPlotDetail | undefined) ?? null;
   }
 
-  if (!plot) return null;
+  if (!plot) return (STATIC_LAND_PLOTS.find((p) => p.slug === slug) as LandPlotDetail | undefined) ?? null;
 
   const statusMap: Record<string, 'available' | 'reserved' | 'sold'> = {
     AVAILABLE: 'available',
