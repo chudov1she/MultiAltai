@@ -19,6 +19,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/generated   ./generated
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
