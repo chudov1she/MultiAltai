@@ -74,7 +74,7 @@ export async function getCatalogListings(
   page = 1,
   pageSize = 20,
 ): Promise<{ plots: FrontendLandPlot[]; total: number }> {
-  const [plots, total] = await prisma.$transaction([
+  const [plots, total] = await Promise.all([
     prisma.landPlot.findMany({
       where: { isPublished: true },
       skip: (page - 1) * pageSize,
