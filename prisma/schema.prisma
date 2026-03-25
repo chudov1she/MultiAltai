@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
 }
 
 enum UserRole {
@@ -149,7 +149,6 @@ model LandPlot {
   isPublished      Boolean        @default(false)
   status           LandPlotStatus @default(AVAILABLE)
   locationId       String
-  // SQLite не поддерживает массивы; кадастровые номера хранятся как JSON-массив строк
   cadastralNumbers Json           @default("[]")
   categoryId       String
   permittedUseId   String

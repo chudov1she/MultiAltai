@@ -1,36 +1,32 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 0 · base — Alpine + build tools needed for native addons (better-sqlite3)
+# Stage 1 · deps — install dependencies
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat python3 make g++
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Stage 1 · deps — install ALL dependencies including native addons
-# prisma/ is copied so that postinstall (prisma generate) succeeds.
-# ─────────────────────────────────────────────────────────────────────────────
-FROM base AS deps
 COPY package.json yarn.lock ./
 COPY prisma ./prisma
-# Full install: compiles better-sqlite3 native addon + runs prisma generate
+
+# Installs dependencies and runs prisma generate (postinstall)
 RUN yarn install --frozen-lockfile
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 · builder — build Next.js
 # ─────────────────────────────────────────────────────────────────────────────
-FROM base AS builder
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-# dev.db is included in the project root (COPY . .) and needed for
-# Next.js static pre-rendering of pages that query the database.
-ENV DATABASE_URL="file:./dev.db"
+# DATABASE_URL is required at build time for Prisma client generation and
+# static pre-rendering. The actual production value is injected at deploy time.
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
 
-# Re-generate Prisma client after full project copy (idempotent, ensures fresh output)
-RUN npx prisma generate
-
-# Build Next.js (produces .next/standalone because output: 'standalone')
 RUN yarn build
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -45,40 +41,16 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Non-root user for security
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-# ── Next.js standalone bundle ─────────────────────────────────────────────────
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 
-# ── Prisma generated client + schema ─────────────────────────────────────────
-# The client is needed at runtime; schema is needed by Prisma migrations/checks.
+# Prisma generated client and schema (needed at runtime)
 COPY --from=builder --chown=nextjs:nodejs /app/generated        ./generated
 COPY --from=builder --chown=nextjs:nodejs /app/prisma/schema.prisma ./prisma/schema.prisma
-
-# ── better-sqlite3 native addon ───────────────────────────────────────────────
-# Next.js file-tracing may not catch .node binaries; copy the package explicitly.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/better-sqlite3          ./node_modules/better-sqlite3
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bindings                ./node_modules/bindings
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/file-uri-to-path        ./node_modules/file-uri-to-path
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/adapter-better-sqlite3 ./node_modules/@prisma/adapter-better-sqlite3
-
-# ── Database ──────────────────────────────────────────────────────────────────
-# dev.db is baked into the image as the initial dataset.
-#
-# VOLUME declaration is critical: Docker initialises the volume with the
-# image contents on first run, giving SQLite a proper writable filesystem
-# (not an overlay read-only layer) so it can create -wal/-shm files.
-#
-# On Timeweb: mount a persistent disk at /app/data so data survives redeploys.
-# Set DATABASE_URL="file:/app/data/dev.db" in environment variables.
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-COPY --from=builder --chown=nextjs:nodejs /app/dev.db /app/data/dev.db
-
-VOLUME ["/app/data"]
 
 USER nextjs
 EXPOSE 3000

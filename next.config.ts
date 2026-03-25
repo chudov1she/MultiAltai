@@ -3,11 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
 
-  // Explicitly include files that Next.js file-tracing may miss:
-  // native better-sqlite3 addon, Prisma generated client, schema.
+  // Explicitly include Prisma generated client and schema in standalone build.
   outputFileTracingIncludes: {
     "**": [
-      "./node_modules/better-sqlite3/build/Release/*.node",
       "./generated/**",
       "./prisma/schema.prisma",
     ],
