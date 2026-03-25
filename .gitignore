@@ -30,8 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — secrets stay local
+.env
+.env.local
+.env.*.local
+# template is safe to commit
+!.env.example
 
 # vercel
 .vercel
@@ -42,7 +46,9 @@ next-env.d.ts
 
 /generated/prisma
 
-# SQLite database files — never commit DB to repo
-*.db
+# SQLite WAL/SHM temp files — always ignore
 *.db-shm
 *.db-wal
+
+# Empty placeholder DB in prisma folder
+/prisma/*.db

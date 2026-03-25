@@ -61,11 +61,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bindings            
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/file-uri-to-path        ./node_modules/file-uri-to-path
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/adapter-better-sqlite3 ./node_modules/@prisma/adapter-better-sqlite3
 
-# ── Database directory ────────────────────────────────────────────────────────
-# The SQLite database file is NOT baked into the image.
-# Mount your database file via a volume or Timeweb persistent disk,
-# then set DATABASE_URL="file:/app/data/prod.db" in the environment.
+# ── Database ──────────────────────────────────────────────────────────────────
+# dev.db is baked into the image as the initial dataset.
+# On Timeweb: mount a persistent disk at /app/data — the mounted volume will
+# take precedence and survive restarts. First deploy: copy dev.db to the disk.
+# Set DATABASE_URL="file:/app/data/dev.db" in Timeweb environment variables.
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+COPY --from=builder --chown=nextjs:nodejs /app/dev.db /app/data/dev.db
 
 USER nextjs
 EXPOSE 3000
