@@ -77,7 +77,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const contactData = await getCompanyContact();
+  const contactData = getCompanyContact();
 
   return (
     <html lang="ru">

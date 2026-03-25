@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactsPage() {
-  const contactData = await getCompanyContact();
+  const contactData = getCompanyContact();
 
   return (
     <div className="min-h-screen bg-gray-50 pt-4 md:pt-24">

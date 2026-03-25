@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import type { Contact } from "@/types/site";
+import { COMPANY_CONTACT } from "./contacts";
 import type { LandPlot as FrontendLandPlot, LandPlotDetail } from "@/types/catalog";
 
 export async function getRecommendedListings(): Promise<FrontendLandPlot[]> {
@@ -232,30 +233,6 @@ export async function getSpecialOfferListing() {
   });
 }
 
-export async function getCompanyContact(): Promise<Contact | null> {
-  const contact = await prisma.companyContact.findFirst();
-  if (!contact) return null;
-
-  // БД хранит единый диапазон рабочего времени без разбивки по дням.
-  // Разворачиваем в формат working_hours: Пн–Сб активны, Вс — выходной.
-  const workingHours: Contact["working_hours"] =
-    contact.workTimeFrom && contact.workTimeTo
-      ? [
-          { day_of_week: 0, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 1, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 2, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 3, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 4, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 5, start_time: contact.workTimeFrom, end_time: contact.workTimeTo, is_active: true },
-          { day_of_week: 6, is_active: false },
-        ]
-      : [];
-
-  return {
-    phone: contact.phone ?? undefined,
-    whatsapp: contact.whatsapp ?? undefined,
-    telegram: contact.telegram ?? undefined,
-    office_address: contact.address ?? undefined,
-    working_hours: workingHours,
-  };
+export function getCompanyContact(): Contact {
+  return COMPANY_CONTACT;
 }
