@@ -68,11 +68,17 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/adapter-bett
 
 # ── Database ──────────────────────────────────────────────────────────────────
 # dev.db is baked into the image as the initial dataset.
-# On Timeweb: mount a persistent disk at /app/data — the mounted volume will
-# take precedence and survive restarts. First deploy: copy dev.db to the disk.
-# Set DATABASE_URL="file:/app/data/dev.db" in Timeweb environment variables.
+#
+# VOLUME declaration is critical: Docker initialises the volume with the
+# image contents on first run, giving SQLite a proper writable filesystem
+# (not an overlay read-only layer) so it can create -wal/-shm files.
+#
+# On Timeweb: mount a persistent disk at /app/data so data survives redeploys.
+# Set DATABASE_URL="file:/app/data/dev.db" in environment variables.
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 COPY --from=builder --chown=nextjs:nodejs /app/dev.db /app/data/dev.db
+
+VOLUME ["/app/data"]
 
 USER nextjs
 EXPOSE 3000
