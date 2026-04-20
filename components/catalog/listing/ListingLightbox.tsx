@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Keyboard, A11y } from 'swiper/modules';
+import { A11y } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 
@@ -145,8 +145,7 @@ export default function ListingLightbox({
               slidesPerView={1}
               grabCursor
               centeredSlides
-              modules={[Keyboard, A11y]}
-              keyboard={{ enabled: true }}
+              modules={[A11y]}
               onSwiper={(s) => {
                 swiperRef.current = s;
               }}
