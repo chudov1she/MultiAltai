@@ -25,7 +25,7 @@ const SpecialOffer = async () => {
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
-                    alt="Земля Золотой Гектар"
+                    alt="Золотой Гектар"
                     fill
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -47,7 +47,7 @@ const SpecialOffer = async () => {
               <div className="p-6 sm:p-8 lg:p-12 flex flex-col justify-between rounded-b-2xl sm:rounded-b-3xl lg:rounded-r-3xl lg:rounded-bl-none">
                 <div className="mb-6 sm:mb-8">
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl text-[#0A192F] mb-3 sm:mb-4">
-                    Земля Золотой Гектар
+                    Золотой Гектар
                   </h3>
                   <p className="text-base sm:text-lg text-gray-600">Уникальный участок в сердце Алтая</p>
                 </div>
@@ -76,11 +76,11 @@ const SpecialOffer = async () => {
 
                 <div className="mb-6 sm:mb-8">
                   <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
-                    Представляем эксклюзивный участок — 10 000 м² (1 га), единственный на первой береговой линии
+                    Представляем эксклюзивный участок — 10 000 м² (1 га) на первой береговой линии
                     в Соузге.
                     <br className="hidden sm:block" />
-                    Полная собственность и прямой выход к воде создают идеальные условия для инвестиций
-                    в эко-курорт, частный ретрит или резиденцию.
+                    Полная собственность и расположение на первой линии горной реки Катунь создают идеальные
+                    условия для инвестиций в эко-курорт, частный ретрит или резиденцию.
                   </p>
                 </div>
 
