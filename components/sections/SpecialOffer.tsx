@@ -6,7 +6,7 @@ import { getSpecialOfferListing } from "@/lib/queries";
 
 const SpecialOffer = async () => {
   const listing = await getSpecialOfferListing();
-  const imageUrl = listing?.mediaFiles[0]?.url ?? null;
+  const imageUrl = listing?.media_files[0]?.url ?? listing?.media_files[0]?.file_url ?? null;
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 bg-[#0A192F]">
@@ -25,7 +25,7 @@ const SpecialOffer = async () => {
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
-                    alt="Земля Береговая"
+                    alt="Земля Золотой Гектар"
                     fill
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -47,7 +47,7 @@ const SpecialOffer = async () => {
               <div className="p-6 sm:p-8 lg:p-12 flex flex-col justify-between rounded-b-2xl sm:rounded-b-3xl lg:rounded-r-3xl lg:rounded-bl-none">
                 <div className="mb-6 sm:mb-8">
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl text-[#0A192F] mb-3 sm:mb-4">
-                    Земля Береговая
+                    Земля Золотой Гектар
                   </h3>
                   <p className="text-base sm:text-lg text-gray-600">Уникальный участок в сердце Алтая</p>
                 </div>
@@ -59,7 +59,7 @@ const SpecialOffer = async () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-gray-500">Площадь</p>
-                      <p className="text-[#0A192F] text-base sm:text-lg truncate">61 601 м²</p>
+                      <p className="text-[#0A192F] text-base sm:text-lg truncate">10 000 м²</p>
                     </div>
                   </div>
 
@@ -76,11 +76,11 @@ const SpecialOffer = async () => {
 
                 <div className="mb-6 sm:mb-8">
                   <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
-                    Представляем эксклюзивный участок — 61 601 м² (6 га) с возможностью расширения до 263 га
-                    в Горном Алтае.
+                    Представляем эксклюзивный участок — 10 000 м² (1 га), единственный на первой береговой линии
+                    в Соузге.
                     <br className="hidden sm:block" />
-                    Полная собственность и расположение на первой линии горной реки Катунь создают идеальные
-                    условия для инвестиций в эко-курорт, частный клуб или сафари-парк.
+                    Полная собственность и прямой выход к воде создают идеальные условия для инвестиций
+                    в эко-курорт, частный ретрит или резиденцию.
                   </p>
                 </div>
 
@@ -96,7 +96,7 @@ const SpecialOffer = async () => {
                 </div>
 
                 <Link
-                  href="/catalog/land-plots/земля-береговая"
+                  href="/catalog/land-plots/земля-золотой-гектар"
                   className="w-full bg-[#00B4D8] hover:bg-[#0095c6] text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-colors duration-300 flex items-center justify-center gap-2 group text-sm sm:text-base"
                 >
                   <span>Смотреть подробнее</span>

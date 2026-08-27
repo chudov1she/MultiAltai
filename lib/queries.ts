@@ -4,18 +4,22 @@ import { COMPANY_CONTACT } from "./contacts";
 import type { LandPlot as FrontendLandPlot, LandPlotDetail } from "@/types/catalog";
 import { STATIC_LAND_PLOTS } from "./data/land-plots";
 
+const FEATURED_LISTING_SLUG = "земля-золотой-гектар";
+
 export async function getRecommendedListings(): Promise<FrontendLandPlot[]> {
   try {
     return await getRecommendedListingsFromDb();
   } catch (err) {
     console.warn("[getRecommendedListings] DB unavailable, using static data:", err);
-    return STATIC_LAND_PLOTS.filter((p) => p.listing_status === "published").slice(0, 6);
+    return STATIC_LAND_PLOTS.filter(
+      (p) => p.listing_status === "published" && p.slug !== FEATURED_LISTING_SLUG,
+    ).slice(0, 6);
   }
 }
 
 async function getRecommendedListingsFromDb(): Promise<FrontendLandPlot[]> {
   const plots = await prisma.landPlot.findMany({
-    where: { isPublished: true },
+    where: { isPublished: true, slug: { not: FEATURED_LISTING_SLUG } },
     take: 6,
     orderBy: { createdAt: "desc" },
     include: {
@@ -248,13 +252,8 @@ export async function getLandPlotBySlug(slug: string): Promise<LandPlotDetail | 
   };
 }
 
-export async function getSpecialOfferListing() {
-  return prisma.landPlot.findUnique({
-    where: { slug: "земля-береговая" },
-    include: {
-      mediaFiles: { orderBy: { order: "asc" }, take: 1 },
-    },
-  });
+export async function getSpecialOfferListing(): Promise<LandPlotDetail | null> {
+  return getLandPlotBySlug(FEATURED_LISTING_SLUG);
 }
 
 export function getCompanyContact(): Contact {
